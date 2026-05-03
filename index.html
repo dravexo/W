@@ -1,8 +1,24 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weather web</title>
+  <title>Weather 3D Pro</title>
+  
+  <!-- SEO & Meta Tags -->
+  <meta name="description" content="Experience premium 3D glassmorphism weather forecasting. Get real-time updates for cities, villages, and AQI with interactive charts." />
+  <meta name="keywords" content="weather, 3d weather, live weather, AQI, weather forecast, India weather, Bisauli weather" />
+  <meta name="author" content="Weather 3D Pro" />
+
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Weather 3D Pro - Advanced Weather Dashboard" />
+  <meta property="og:description" content="Real-time 3D weather reports with glassmorphism UI. Check your local village or city weather instantly." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?w=1200&h=630&fit=crop" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4052/4052984.png" />
+  
   <meta name="theme-color" content="#0b1220" />
   <style>
     :root{
@@ -18,7 +34,7 @@
       --good:#22c55e;
       --mid:#f59e0b;
       --bad:#ef4444;
-      --shadow:0 24px 70px rgba(0,0,0,.35);
+      --shadow:0 40px 100px rgba(0,0,0,.55), inset 0 0 20px rgba(255,255,255,0.05);
       --radius:28px;
     }
     [data-theme="light"]{
@@ -29,25 +45,36 @@
       --text:#0f172a;
       --muted:rgba(15,23,42,.68);
       --line:rgba(15,23,42,.10);
-      --shadow:0 24px 60px rgba(15,23,42,.12);
+      --shadow:0 30px 60px rgba(15,23,42,.15);
     }
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%}
+    *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+    html{scroll-behavior: smooth;}
+    body{
+      margin:0; min-height:100%;
+    }
     body{
       font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
       color:var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(56,189,248,.22), transparent 28%),
-        radial-gradient(circle at top right, rgba(167,139,250,.18), transparent 24%),
-        radial-gradient(circle at bottom right, rgba(34,197,94,.12), transparent 20%),
-        linear-gradient(180deg, var(--bg1), var(--bg2));
-      overflow-x:hidden;
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow-x:hidden; transition: background 2s ease;
+    }
+    /* Dynamic Weather Backgrounds */
+    body.wx-sunny { --bg1: #075985; --bg2: #0c4a6e; }
+    body.wx-cloudy { --bg1: #334155; --bg2: #1e293b; }
+    body.wx-rainy { --bg1: #1e1b4b; --bg2: #0f172a; }
+    body.wx-night { --bg1: #020617; --bg2: #0f172a; }
+    
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background: 
+        radial-gradient(circle at 20% 20%, rgba(56,189,248,0.15), transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(167,139,250,0.1), transparent 40%);
     }
     .wrap{max-width:1400px;margin:0 auto;padding:18px;position:relative}
     .scene{
       position:relative;
       transform-style:preserve-3d;
-      perspective:1200px;
+      perspective:2000px;
     }
     .hero,
     .panel{
@@ -55,14 +82,15 @@
       background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
       backdrop-filter: blur(18px);
       box-shadow:var(--shadow);
+      transition: transform 0.4s cubic-bezier(0.03, 0.98, 0.52, 0.99), box-shadow 0.4s ease;
     }
     .hero{
       border-radius:34px;
       padding:22px;
-      transform: translateZ(0);
+      transform: translateZ(40px);
     }
     .topbar{display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
-    .brand h1{margin:0;font-size:clamp(28px,4vw,54px);line-height:1.02;letter-spacing:-.03em}
+    .brand h1{margin:0;font-size:clamp(28px,4vw,54px);line-height:1.02;letter-spacing:-.03em; transform: translateZ(20px);}
     .brand p{margin:10px 0 0;max-width:980px;color:var(--muted);font-size:15px;line-height:1.7}
     .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .btn,
@@ -92,8 +120,18 @@
     .card{
       position:relative;border-radius:30px;padding:20px;background:var(--card);border:1px solid var(--line);
       box-shadow:var(--shadow);backdrop-filter:blur(18px);transform-style:preserve-3d;
+      transition: transform 0.4s cubic-bezier(0.03, 0.98, 0.52, 0.99), box-shadow 0.4s ease;
+      will-change: transform;
+      overflow: hidden;
     }
-    .card:hover{transform:translateY(-2px) rotateX(1deg) rotateY(-1deg)}
+    /* 3D Reflection Glare */
+    .glare {
+      position: absolute; inset: 0; z-index: 10; pointer-events: none;
+      background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.12), transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .card:hover .glare { opacity: 1; }
+    .card:hover{box-shadow: 0 50px 120px rgba(0,0,0,0.6);}
     .subtle{color:var(--muted)}
     .recentRow{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
     .chip{
@@ -113,12 +151,37 @@
       width:92px;height:92px;border-radius:30px;display:grid;place-items:center;
       background:linear-gradient(135deg, rgba(56,189,248,.18), rgba(167,139,250,.16));
       border:1px solid var(--line);font-size:40px;box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
-      transform: translateZ(30px);
+      transform: translateZ(60px);
+      animation: float 4s ease-in-out infinite;
+      transform-style: preserve-3d;
     }
-    .temp{font-size:clamp(52px,9vw,90px);line-height:1;margin:0;font-weight:900;letter-spacing:-.05em}
+    /* 3D Rotating Icon Container */
+    .icon3d {
+      position: relative;
+      transform-style: preserve-3d;
+      animation: rotate3d 8s linear infinite;
+      width: 50px; height: 50px;
+      display: grid; place-items: center;
+    }
+    .icon3d span {
+      position: absolute;
+      display: block;
+      user-select: none;
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+    }
+    /* Stacking 3 layers for "thickness" */
+    .icon3d span:nth-child(1) { transform: translateZ(-3px); opacity: 0.4; }
+    .icon3d span:nth-child(2) { transform: translateZ(0); }
+    .icon3d span:nth-child(3) { transform: translateZ(3px); text-shadow: 0 0 20px currentColor; }
+
+    @keyframes rotate3d {
+      from { transform: rotateY(0deg); }
+      to { transform: rotateY(360deg); }
+    }
+    .temp{font-size:clamp(52px,9vw,90px);line-height:1;margin:0;font-weight:900;letter-spacing:-.05em; transform: translateZ(40px);}
     .desc{margin-top:8px;font-size:18px;color:var(--muted)}
     .pillGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
-    .pill,.mini,.infoBox,.dailyCard{background:var(--card2);border:1px solid var(--line);border-radius:22px}
+    .pill,.mini,.infoBox,.dailyCard{background:var(--card2);border:1px solid var(--line);border-radius:22px; transform-style: preserve-3d;}
     .pill,.mini,.infoBox{padding:14px}
     .label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
     .value{margin-top:6px;font-size:18px;font-weight:800}
@@ -141,16 +204,29 @@
     .aqiGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
     .detailsGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
     .infoBox{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .mini-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .mini-bar-fill { height: 100%; background: var(--accent); transition: width 1s ease; }
     .recentTitle{margin-top:6px;font-size:13px;color:var(--muted)}
+    /* Live Dashboard Indicators */
+    .live-status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--good); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; flex-wrap: wrap; }
+    .syncing-indicator { display: none; align-items: center; gap: 4px; color: var(--accent); animation: fadeIn 0.3s ease; }
+    .live-clock { color: var(--text); background: rgba(34,197,94,0.15); padding: 2px 8px; border-radius: 8px; font-family: monospace; }
+    .live-dot { width: 8px; height: 8px; background: var(--good); border-radius: 50%; box-shadow: 0 0 8px var(--good); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+    .update-time { font-size: 11px; color: var(--muted); font-weight: 400; text-transform: none; }
+
     .featureList{color:var(--muted);line-height:1.9}
     .toast{position:fixed;right:16px;bottom:16px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:rgba(2,6,23,.92);color:#fff;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none;z-index:99}
     .toast.show{opacity:1;transform:translateY(0)}
     .suggestWrap{position:relative}
     .suggestions{
-      position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:50;display:none;
+      position:absolute;left:0;right:0;top:calc(100% + 12px);z-index:50;
+      opacity:0; transform: translateY(-10px) scale(0.98); pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       border:1px solid var(--line);background:rgba(2,6,23,.96);backdrop-filter:blur(12px);
       border-radius:22px;overflow:hidden;box-shadow:var(--shadow);max-height:320px;overflow-y:auto;
     }
+    .suggestions.show{ opacity:1; transform: translateY(0) scale(1); pointer-events: auto; }
     [data-theme="light"] .suggestions{background:rgba(255,255,255,.96)}
     .sItem{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer}
     .sItem:hover{background:rgba(255,255,255,.08)}
@@ -158,7 +234,19 @@
     .sMeta{font-size:13px;color:var(--muted);margin-top:4px}
     .loadingInline{display:inline-flex;align-items:center;gap:8px}
     .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.45);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    /* Smooth Entry Animation */
+    .reveal {
+      animation: revealEffect 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes revealEffect {
+      from { opacity: 0; transform: translateY(20px) translateZ(0); }
+      to { opacity: 1; transform: translateY(0) translateZ(0); }
+    }
+
     @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes float{ 0%,100%{transform: translateZ(60px) translateY(0)} 50%{transform: translateZ(80px) translateY(-10px)} }
     @media (max-width: 1120px){
       .mainGrid{grid-template-columns:1fr}
       .forecastGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -196,106 +284,102 @@
           <strong>Location note</strong>
           My location works only on HTTPS or localhost. If you opened this file with file://, browser location may be blocked. Run it on a local server or HTTPS.
         </div>
-      </div><div class="panel searchPanel">
-    <div class="searchGrid">
-      <div class="suggestWrap">
-        <input id="cityInput" class="input" placeholder="Enter city / village / district / country" autocomplete="off" />
-        <div id="suggestions" class="suggestions"></div>
       </div>
-      <button class="btn primary" id="searchBtn">Search</button>
-      <button class="btn" id="refreshBtn">🔄 Refresh</button>
-      <select id="unitSelect">
-        <option value="metric">Metric</option>
-        <option value="imperial">Imperial</option>
-      </select>
-      <select id="langSelect">
-        <option value="en">English</option>
-        <option value="hi">Hindi</option>
-      </select>
-    </div>
-    <div class="recentTitle" id="recentTitle">Recent searches</div>
-    <div id="recentRow" class="recentRow"></div>
-  </div>
 
-  <div id="errorBox" class="panel" style="display:none;margin-top:16px;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)"></div>
+      <div class="panel searchPanel">
+        <div class="searchGrid">
+          <div class="suggestWrap">
+            <input id="cityInput" class="input" placeholder="Enter city / village / district / country" autocomplete="off" />
+            <div id="suggestions" class="suggestions"></div>
+          </div>
+          <button class="btn primary" id="searchBtn">Search</button>
+          <button class="btn" id="refreshBtn">🔄 Refresh</button>
+          <select id="unitSelect">
+            <option value="metric">Metric</option>
+            <option value="imperial">Imperial</option>
+          </select>
+          <select id="langSelect">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+          </select>
+        </div>
+        <div class="recentTitle" id="recentTitle">Recent searches</div>
+        <div id="recentRow" class="recentRow"></div>
+      </div>
 
-  <div class="mainGrid" style="margin-top:18px">
-    <div class="stack">
-      <div class="card">
-        <div class="heroRow">
-          <div class="tempWrap">
-            <div class="weatherOrb" id="mainIcon">☀️</div>
-            <div>
-              <div class="place" id="placeName">Loading...</div>
-              <h2 class="temp" id="tempNow">--°</h2>
-              <div class="desc" id="descNow">Search a place to begin.</div>
+      <div id="errorBox" class="panel" style="display:none;margin-top:16px;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)"></div>
+
+      <div class="mainGrid" style="margin-top:18px">
+        <div class="stack">
+          <div class="card">
+            <div class="heroRow">
+              <div class="tempWrap">
+                <div class="weatherOrb" id="mainIcon">☀️</div>
+                <div>
+                  <div class="place" id="placeName">Loading...</div>
+                  <h2 class="temp" id="tempNow">--°</h2>
+                  <div class="desc" id="descNow">Search a place to begin.</div>
+                </div>
+              </div>
+              <div style="min-width:min(100%,340px);flex:1">
+                <div class="detailsGrid" id="quickGrid"></div>
+              </div>
             </div>
+            <div class="pillGrid" id="topPills"></div>
           </div>
-          <div style="min-width:min(100%,340px);flex:1">
-            <div class="detailsGrid" id="quickGrid"></div>
+
+          <div class="card">
+            <div class="sectionTitle">
+              <h2 id="chartTitle">12-hour forecast chart</h2>
+              <span id="chartSub">Temperature + rain probability</span>
+            </div>
+            <canvas id="chart" class="chartBox" width="1200" height="420"></canvas>
           </div>
-        </div>
-        <div class="pillGrid" id="topPills"></div>
-      </div>
 
-      <div class="card">
-        <div class="sectionTitle">
-          <h2 id="chartTitle">12-hour forecast chart</h2>
-          <span id="chartSub">Temperature + rain probability</span>
-        </div>
-        <canvas id="chart" class="chartBox" width="1200" height="420"></canvas>
-      </div>
-
-      <div class="card">
-        <div class="sectionTitle">
-          <h2 id="forecastTitle">7-day forecast</h2>
-          <span id="forecastSub">High / low each day</span>
-        </div>
-        <div class="forecastGrid" id="forecastGrid"></div>
-      </div>
-    </div>
-
-    <div class="rightStack">
-      <div class="card">
-        <div class="sectionTitle">
-          <h2 id="aqiTitle">Air quality</h2>
-          <span id="aqiSub">Live AQI + pollutants</span>
-        </div>
-        <div class="aqiHeader">
-          <div>
-            <div class="subtle" id="aqiLabel">European AQI</div>
-            <div class="aqiScore" id="aqiScore">--</div>
-            <div class="aqiLabel" id="aqiText">Unavailable</div>
-          </div>
-          <div style="min-width:180px;flex:1">
-            <div class="bar"><div id="aqiBar"></div></div>
-            <div class="subtle" style="font-size:12px;margin-top:8px" id="aqiScale">0-20 Good • 20-40 Fair • 40-60 Moderate • 60-80 Poor • 80-100 Very poor • 100+ Extremely poor</div>
+          <div class="card">
+            <div class="sectionTitle">
+              <h2 id="forecastTitle">7-day forecast</h2>
+              <span id="forecastSub">High / low each day</span>
+            </div>
+            <div class="forecastGrid" id="forecastGrid"></div>
           </div>
         </div>
-        <div class="aqiGrid" id="aqiGrid"></div>
-      </div>
 
-      <div class="card">
-        <div class="sectionTitle">
-          <h2 id="detailsTitle">Today’s details</h2>
-          <span id="detailsSub">Quick snapshot</span>
-        </div>
-        <div class="detailsGrid" id="detailsGrid"></div>
-      </div>
+        <div class="rightStack">
+          <div class="card">
+            <div class="sectionTitle">
+              <h2 id="aqiTitle">Air quality</h2>
+              <span id="aqiSub">Live AQI + pollutants</span>
+            </div>
+            <div class="aqiHeader">
+              <div>
+                <div class="subtle" id="aqiLabel">European AQI</div>
+                <div class="aqiScore" id="aqiScore">--</div>
+                <div class="aqiLabel" id="aqiText">Unavailable</div>
+              </div>
+              <div style="min-width:180px;flex:1">
+                <div class="bar"><div id="aqiBar"></div></div>
+                <div class="subtle" style="font-size:12px;margin-top:8px" id="aqiScale">0-20 Good • 20-40 Fair • 40-60 Moderate • 60-80 Poor • 80-100 Very poor • 100+ Extremely poor</div>
+              </div>
+            </div>
+            <div class="aqiGrid" id="aqiGrid"></div>
+          </div>
 
-      <div class="card">
-        <div class="sectionTitle">
-          <h2 id="featuresTitle">Features included</h2>
-          <span id="featuresSub">Everything in one app</span>
+          <div class="card">
+            <div class="sectionTitle">
+              <h2 id="detailsTitle">Today’s details</h2>
+              <span id="detailsSub">Quick snapshot</span>
+            </div>
+            <div class="detailsGrid" id="detailsGrid"></div>
+          </div>
+
         </div>
-        <div class="featureList" id="featureList"></div>
       </div>
     </div>
   </div>
-</div>
+  <div id="toast" class="toast"></div>
 
-  </div>
-  <div id="toast" class="toast"></div><script>
+<script>
   const $ = (id) => document.getElementById(id);
   const store = {
     lang: localStorage.getItem('wx_lang') || 'en',
@@ -333,11 +417,13 @@
       aqiScale: '0-20 Good • 20-40 Fair • 40-60 Moderate • 60-80 Poor • 80-100 Very poor • 100+ Extremely poor',
       detailsTitle: 'Today’s details',
       detailsSub: 'Quick snapshot',
-      featuresTitle: 'Features included',
-      featuresSub: 'Everything in one app',
       feels: 'Feels like', wind: 'Wind', hum: 'Humidity', rain: 'Rain chance', tz: 'Timezone', rise: 'Sunrise', set: 'Sunset', uv: 'UV index',
       advisoryCold: 'Cold advisory', advisoryHeat: 'Heat advisory', advisoryRain: 'Rain advisory', advisoryNormal: 'Conditions look stable.',
-      topFeatures: ['City search','Current location','Live current weather','12-hour chart','7-day forecast','Sunrise / sunset','AQI and pollution','Metric / imperial','Recent searches','Voice search','Hindi / English','Dark / light theme']
+      live: 'Live', updated: 'Updated',
+      sync: 'Syncing...',
+      offline: 'You are offline. Check your connection.',
+      timeout: 'Request timed out. Please try again.',
+      genericError: 'An unexpected error occurred.'
     },
     hi: {
       title: 'Weather 3D Pro',
@@ -363,11 +449,13 @@
       aqiScale: '0-20 अच्छा • 20-40 ठीक • 40-60 मध्यम • 60-80 खराब • 80-100 बहुत खराब • 100+ अत्यंत खराब',
       detailsTitle: 'आज की जानकारी',
       detailsSub: 'Quick snapshot',
-      featuresTitle: 'शामिल फीचर्स',
-      featuresSub: 'एक ही app में सब',
       feels: 'महसूस जैसा', wind: 'हवा', hum: 'नमी', rain: 'बारिश संभावना', tz: 'समय क्षेत्र', rise: 'सूर्योदय', set: 'सूर्यास्त', uv: 'UV स्तर',
       advisoryCold: 'ठंड अलर्ट', advisoryHeat: 'गर्मी अलर्ट', advisoryRain: 'बारिश अलर्ट', advisoryNormal: 'मौसम सामान्य दिख रहा है।',
-      topFeatures: ['City search','Current location','Live current weather','12-hour chart','7-day forecast','Sunrise / sunset','AQI and pollution','Metric / imperial','Recent searches','Voice search','Hindi / English','Dark / light theme']
+      live: 'लाइव', updated: 'अपडेटेड',
+      sync: 'सिंक हो रहा है...',
+      offline: 'आप ऑफलाइन हैं। अपना कनेक्शन चेक करें।',
+      timeout: 'अनुरोध का समय समाप्त हो गया। फिर से प्रयास करें।',
+      genericError: 'एक अनपेक्षित त्रुटि हुई।'
     }
   };
 
@@ -385,7 +473,7 @@
   function unitWind(kmh){ return store.unit === 'metric' ? Math.round(kmh) : Math.round(kmh / 1.609); }
   function fmtTime(v){ try { return new Intl.DateTimeFormat(store.lang === 'hi' ? 'hi-IN' : 'en-IN', { hour:'numeric', minute:'2-digit' }).format(new Date(v)); } catch { return v; } }
   function fmtDay(v){ try { return new Intl.DateTimeFormat(store.lang === 'hi' ? 'hi-IN' : 'en-IN', { weekday:'short', month:'short', day:'numeric' }).format(new Date(v)); } catch { return v; } }
-  function wxMeta(code){
+  function wxMeta(code, is3D = false){
     const map = {
       0:['☀️','Clear sky'],1:['🌤️','Mainly clear'],2:['⛅','Partly cloudy'],3:['☁️','Overcast'],45:['🌫️','Fog'],48:['🌫️','Fog'],
       51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],56:['🌨️','Freezing drizzle'],57:['🌨️','Freezing drizzle'],
@@ -394,7 +482,13 @@
       80:['🌦️','Light showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],
       85:['🌨️','Snow showers'],86:['🌨️','Snow showers'],95:['⛈️','Thunderstorm'],96:['⛈️','Thunderstorm with hail'],99:['⛈️','Thunderstorm with hail']
     };
-    return map[code] || ['🌍', `Code ${code}`];
+    const [char, text] = map[code] || ['🌍', `Code ${code}`];
+    if (is3D) {
+      // Return 3 stacked layers for the 3D effect
+      const html = `<div class="icon3d"><span>${char}</span><span>${char}</span><span>${char}</span></div>`;
+      return [html, text];
+    }
+    return [char, text];
   }
   function aqiLabel(v){
     if(v == null) return 'Unavailable';
@@ -407,7 +501,16 @@
   }
   function aqiHeight(v){ return Math.max(0, Math.min(100, v ?? 0)); }
   function toast(msg){ const el = $('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove('show'), 2200); }
-  function setError(msg){ const box = $('errorBox'); if(!msg){ box.style.display='none'; box.innerHTML=''; return; } box.style.display='block'; box.innerHTML = msg; }
+  function setError(msg){ 
+    const box = $('errorBox'); 
+    if(!msg){ 
+      box.style.display='none'; 
+      box.innerHTML=''; 
+      return; 
+    } 
+    box.style.display='block'; 
+    box.innerHTML = `<div style="display:flex;align-items:center;gap:10px">⚠️ <span>${msg}</span></div>`; 
+  }
   function saveRecent(label){
     if(!label) return;
     store.recent = [label, ...store.recent.filter(x => x.toLowerCase() !== label.toLowerCase())].slice(0, 10);
@@ -431,16 +534,39 @@
       row.appendChild(b);
     });
   }
-  async function fetchJson(url){
-    const res = await fetch(url);
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+  async function fetchJson(url, outerSignal = null, timeout = 10000){
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    // Link outer signal (from search input) to our local controller
+    if (outerSignal) outerSignal.addEventListener('abort', () => controller.abort());
+    
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      // Check for deprecation or sunset headers
+      const sunset = res.headers.get('Sunset');
+      const deprecation = res.headers.get('Deprecation');
+      if (sunset || deprecation) {
+        console.warn(`[API Warning] URL ${url} is deprecated. Sunset: ${sunset || 'N/A'}`);
+      }
+
+      return await res.json();
+    } catch (e) {
+      clearTimeout(timeoutId);
+      if (e.name === 'AbortError') throw new Error(t('timeout'));
+      if (!navigator.onLine) throw new Error(t('offline'));
+      throw new Error(e.message || t('genericError'));
+    }
   }
 
-  async function geocode(query){
+  async function geocode(query, signal = null){
     const q = query.trim();
-    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=10&language=${encodeURIComponent(store.lang)}&format=json`;
-    const data = await fetchJson(url);
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=20&format=json`;
+    const data = await fetchJson(url, signal);
     return data.results || [];
   }
 
@@ -448,31 +574,47 @@
     store.suggestions = list;
     const box = $('suggestions');
     box.innerHTML = '';
-    if(!list.length){ box.style.display = 'none'; return; }
+    if(!list.length){ box.classList.remove('show'); return; }
     list.forEach((r, idx) => {
       const item = document.createElement('div');
       item.className = 'sItem';
+      const subLabel = [r.admin4, r.admin3, r.admin2, r.admin1].filter(Boolean).join(', ');
       item.innerHTML = `
-        <div class="sTitle">${r.name}${r.admin1 ? ', ' + r.admin1 : ''}${r.country ? ', ' + r.country : ''}</div>
-        <div class="sMeta">${r.admin2 || ''} ${r.postal_code || ''} ${r.timezone ? '• ' + r.timezone : ''}</div>
+        <div class="sTitle">${r.name}${r.postal_code ? ' [' + r.postal_code + ']' : ''}${subLabel ? ' (' + subLabel + ')' : ''}</div>
+        <div class="sMeta">${r.country || ''} ${r.timezone ? '• ' + r.timezone : ''}</div>
       `;
       item.onclick = async () => {
-        $('cityInput').value = r.name + (r.admin1 ? ', ' + r.admin1 : '') + (r.country ? ', ' + r.country : '');
-        box.style.display = 'none';
-        await loadWeather(r.latitude, r.longitude, [r.name, r.admin1, r.country].filter(Boolean).join(', '));
+        const label = [r.name, r.postal_code, r.admin4, r.admin3, r.admin2].filter(Boolean).join(', ');
+        $('cityInput').value = label;
+        box.classList.remove('show');
+        await loadWeather(r.latitude, r.longitude, label);
       };
       box.appendChild(item);
     });
-    box.style.display = 'block';
+    box.classList.add('show');
   }
 
   async function searchPlace(input){
     const q = (input || $('cityInput').value || '').trim();
     if(!q) return;
+
+    // Agar address pehle se loaded hai, toh dubara geocoding search na karein.
+    // Isse "No place found" error nahi aayega jab aap full address par Search click karenge.
+    if(store.place && store.place.label === q) {
+      await loadWeather(store.place.latitude, store.place.longitude, store.place.label);
+      return;
+    }
+
     $('searchBtn').innerHTML = `<span class="loadingInline"><span class="spin"></span> ${t('loading')}</span>`;
     setError('');
     try{
-      const results = await geocode(q);
+      let results = await geocode(q);
+      
+      // Agar full string search fail ho jaye, toh moujood suggestions ka istemal karein
+      if(!results.length && store.suggestions.length > 0) {
+        results = [store.suggestions[0]];
+      }
+
       if(!results.length){
         showSuggestions([]);
         setError(t('notfound'));
@@ -480,11 +622,12 @@
       }
       showSuggestions(results);
       const best = results[0];
-      const label = [best.name, best.admin1, best.country].filter(Boolean).join(', ');
+      const label = [best.name, best.postal_code, best.admin4, best.admin3, best.admin2].filter(Boolean).join(', ');
       store.place = { ...best, label };
       await loadWeather(best.latitude, best.longitude, label);
       $('cityInput').value = label;
       saveRecent(label);
+      localStorage.setItem('wx_last_place', JSON.stringify(store.place));
       toast(label);
     }catch(e){
       setError(e.message || 'Error');
@@ -492,6 +635,30 @@
       $('searchBtn').textContent = t('search');
     }
   }
+
+  // Interactive 3D Tilt Logic
+  function applyTilt(e) {
+    const cards = document.querySelectorAll('.card, .hero');
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (x > 0 && x < rect.width && y > 0 && y < rect.height) {
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = (y - centerY) / 12;
+        const rotateY = (centerX - x) / 12;
+        const glare = card.querySelector('.glare') || document.createElement('div');
+        if(!glare.className) { glare.className = 'glare'; card.appendChild(glare); }
+        glare.style.setProperty('--x', `${x}px`);
+        glare.style.setProperty('--y', `${y}px`);
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(20px)`;
+      } else {
+        card.style.transform = '';
+      }
+    });
+  }
+  document.addEventListener('mousemove', applyTilt);
 
   async function useMyLocation(){
     if(!window.isSecureContext){
@@ -504,13 +671,18 @@
       try{
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
-        const rev = await fetchJson(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=${encodeURIComponent(store.lang)}&format=json`);
-        const r = rev.results && rev.results[0];
-        const label = r ? [r.name, r.admin1, r.country].filter(Boolean).join(', ') : `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
-        store.place = r ? { ...r, label } : { label, latitude: lat, longitude: lon };
+        const rev = await fetchJson(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=${store.lang}`);
+        
+        // Google style label: Gaon, Tehsil/City, District
+        const parts = [rev.locality, rev.city, rev.principalSubdivision, rev.countryName].filter((v, i, a) => v && a.indexOf(v) === i);
+        let label = parts.join(', ');
+        if(!label) label = `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+
+        store.place = { label, latitude: lat, longitude: lon };
         await loadWeather(lat, lon, label);
         $('cityInput').value = label;
         saveRecent(label);
+        localStorage.setItem('wx_last_place', JSON.stringify(store.place));
         toast(label);
       }catch(e){
         setError(e.message || 'Error');
@@ -520,36 +692,51 @@
     }, () => {
       setError(t('geodeny'));
       $('locBtn').textContent = t('myloc');
-    }, { enableHighAccuracy:true, timeout:12000, maximumAge:30000 });
+    }, { enableHighAccuracy:true, timeout:15000, maximumAge:0 });
   }
 
   async function loadWeather(lat, lon, label){
-    const wx = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,apparent_temperature,precipitation_probability,relative_humidity_2m,wind_speed_10m,weathercode&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,wind_speed_10m_max&timezone=auto&forecast_days=7`;
+    const syncEl = $('syncIndicator');
+    if(syncEl) syncEl.style.display = 'inline-flex';
+
+    const wx = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,wind_speed_10m_max&timezone=auto&forecast_days=7&models=best_match`;
     const aq = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,ozone,sulphur_dioxide&timezone=auto`;
     const [weather, air] = await Promise.all([fetchJson(wx), fetchJson(aq).catch(() => null)]);
     store.data = { ...weather, air: air ? air.current : null };
+    
+    // Auto-refresh timer: 10 seconds
+    clearTimeout(window.__refreshTimer);
+    window.__refreshTimer = setTimeout(() => loadWeather(lat, lon, label), 10000);
     renderUI(label);
   }
 
   function advisory(){
     if(!store.data || !store.data.daily) return '';
     const daily = store.data.daily;
-    const cw = store.data.current_weather || {};
+    const cw = store.data.current || {};
     const max = daily.temperature_2m_max?.[0];
     const rain = daily.precipitation_sum?.[0] || 0;
     if(max != null && max <= 12) return t('advisoryCold');
     if(max != null && max >= 38) return t('advisoryHeat');
-    if(rain > 8 || [51,53,55,61,63,65,80,81,82,95,96,99].includes(cw.weathercode)) return t('advisoryRain');
+    if(rain > 8 || [51,53,55,61,63,65,80,81,82,95,96,99].includes(cw.weather_code)) return t('advisoryRain');
     return t('advisoryNormal');
   }
 
   function renderUI(label){
     const d = store.data;
     if(!d) return;
-    const cw = d.current_weather || {};
+    const cw = d.current || {};
     const daily = d.daily || {};
     const hourly = d.hourly || {};
-    const [icon, desc] = wxMeta(cw.weathercode);
+    const [icon, desc] = wxMeta(cw.weather_code, true);
+
+    // Dynamic Background Logic
+    const isNight = daily.sunset?.[0] ? (new Date() > new Date(daily.sunset[0]) || new Date() < new Date(daily.sunrise[0])) : false;
+    let bodyClass = 'wx-sunny';
+    if(isNight) bodyClass = 'wx-night';
+    else if([3, 45, 48].includes(cw.weather_code)) bodyClass = 'wx-cloudy';
+    else if(cw.weather_code > 50) bodyClass = 'wx-rainy';
+    document.body.className = bodyClass;
 
     $('title').textContent = texts[store.lang].title;
     $('subtitle').textContent = texts[store.lang].subtitle;
@@ -570,21 +757,47 @@
     $('aqiScale').textContent = t('aqiScale');
     $('detailsTitle').textContent = t('detailsTitle');
     $('detailsSub').textContent = t('detailsSub');
-    $('featuresTitle').textContent = t('featuresTitle');
-    $('featuresSub').textContent = t('featuresSub');
 
     $('placeName').textContent = label || '—';
-    $('tempNow').textContent = `${unitTemp(cw.temperature ?? 0)}${tempUnit()}`;
+
+    // Set Real-time status
+    store.lastUpdatedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    $('placeName').innerHTML = `
+      <div class="live-status">
+        <span class="live-dot"></span> 
+        <span class="live-clock" id="tickingClock">--:--:--</span>
+        <span class="syncing-indicator" id="syncIndicator"><span class="spin"></span> ${t('sync')}</span>
+        ${t('live')} 
+        <span class="update-time">(${t('updated')}: ${store.lastUpdatedTime})</span>
+      </div>
+      <div style="font-weight:700">${label || '—'}</div>
+    `;
+    startClock();
+
+    $('tempNow').textContent = `${unitTemp(cw.temperature_2m ?? 0)}${tempUnit()}`;
     $('descNow').textContent = `${desc} • ${advisory()}`;
-    $('mainIcon').textContent = icon;
+    $('mainIcon').innerHTML = icon;
+
+    // Apply Smooth Reveal
+    document.querySelectorAll('.card').forEach((el, i) => {
+      el.style.animationDelay = `${i * 0.1}s`;
+      el.classList.remove('reveal');
+      void el.offsetWidth; // Trigger reflow
+      el.classList.add('reveal');
+    });
 
     const quick = [
-      [t('feels'), `${unitTemp(hourly.apparent_temperature?.[0] ?? cw.temperature ?? 0)}${tempUnit()}`, '🌡️'],
-      [t('wind'), `${unitWind(cw.windspeed ?? 0)} ${windUnit()}`, '💨'],
-      [t('hum'), hourly.relative_humidity_2m?.[0] != null ? `${hourly.relative_humidity_2m[0]}%` : '--', '💧'],
+      [t('feels'), `${unitTemp(cw.apparent_temperature ?? 0)}${tempUnit()}`, '🌡️'],
+      [t('wind'), `${unitWind(cw.wind_speed_10m ?? 0)} ${windUnit()}`, '💨'],
+      [t('hum'), cw.relative_humidity_2m != null ? `${cw.relative_humidity_2m}%` : '--', '💧'],
       [t('rain'), hourly.precipitation_probability?.[0] != null ? `${hourly.precipitation_probability[0]}%` : '--', '🌧️']
     ];
-    $('quickGrid').innerHTML = quick.map(([k,v,e]) => `<div class="infoBox"><div><div class="label">${k}</div><div class="value">${v}</div></div><div>${e}</div></div>`).join('');
+    $('quickGrid').innerHTML = quick.map(([k,v,e]) => {
+      let bar = '';
+      if(k === t('hum')) bar = `<div class="mini-bar"><div class="mini-bar-fill" style="width:${v}"></div></div>`;
+      return `<div class="infoBox"><div><div class="label">${k}</div><div class="value">${v}</div>${bar}</div><div>${e}</div></div>`;
+    }).join('');
 
     const topPills = [
       [t('tz'), d.timezone || '--'],
@@ -609,20 +822,23 @@
     $('aqiGrid').innerHTML = pollutants.map(([name,val,u]) => `<div class="mini"><div class="label">${name}</div><div class="value">${val ?? '—'} <span class="subtle" style="font-size:12px">${u}</span></div></div>`).join('');
 
     const details = [
-      [t('feels'), `${unitTemp(hourly.apparent_temperature?.[0] ?? cw.temperature ?? 0)}${tempUnit()}`],
-      [t('wind'), `${unitWind(cw.windspeed ?? 0)} ${windUnit()}`],
-      [t('hum'), hourly.relative_humidity_2m?.[0] != null ? `${hourly.relative_humidity_2m[0]}%` : '--'],
-      [t('rain'), hourly.precipitation_probability?.[0] != null ? `${hourly.precipitation_probability[0]}%` : '--'],
-      [t('tz'), d.timezone || '--'],
-      [t('rise'), daily.sunrise?.[0] ? fmtTime(daily.sunrise[0]) : '--'],
-      [t('set'), daily.sunset?.[0] ? fmtTime(daily.sunset[0]) : '--'],
-      [t('uv'), daily.uv_index_max?.[0] ?? '--']
+      [t('feels'), `${unitTemp(cw.apparent_temperature ?? 0)}${tempUnit()}`, 0],
+      [t('wind'), `${unitWind(cw.wind_speed_10m ?? 0)} ${windUnit()}`, (cw.wind_speed_10m / 50) * 100],
+      [t('hum'), cw.relative_humidity_2m != null ? `${cw.relative_humidity_2m}%` : '--', cw.relative_humidity_2m],
+      [t('rain'), hourly.precipitation_probability?.[0] != null ? `${hourly.precipitation_probability[0]}%` : '--', hourly.precipitation_probability?.[0]],
+      [t('tz'), d.timezone || '--', 0],
+      [t('rise'), daily.sunrise?.[0] ? fmtTime(daily.sunrise[0]) : '--', 0],
+      [t('set'), daily.sunset?.[0] ? fmtTime(daily.sunset[0]) : '--', 0],
+      [t('uv'), daily.uv_index_max?.[0] ?? '--', (daily.uv_index_max?.[0] / 12) * 100]
     ];
-    $('detailsGrid').innerHTML = details.map(([k,v]) => `<div class="infoBox"><div><div class="label">${k}</div><div class="value">${v}</div></div><div>✨</div></div>`).join('');
+    $('detailsGrid').innerHTML = details.map(([k,v,p]) => {
+      const bar = p > 0 ? `<div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.min(100,p)}%"></div></div>` : '';
+      return `<div class="infoBox"><div><div class="label">${k}</div><div class="value">${v}</div>${bar}</div><div>✨</div></div>`;
+    }).join('');
 
     const days = daily.time || [];
     $('forecastGrid').innerHTML = days.map((day, i) => {
-      const [di, ddesc] = wxMeta(daily.weathercode?.[i]);
+      const [di, ddesc] = wxMeta(daily.weather_code?.[i]);
       return `
         <div class="dailyCard">
           <div class="day">${fmtDay(day)}</div>
@@ -633,7 +849,6 @@
         </div>`;
     }).join('');
 
-    $('featureList').innerHTML = texts[store.lang].topFeatures.map(x => `• ${x}`).join('<br>');
     drawChart();
   }
 
@@ -655,11 +870,25 @@
     const temps = h.temperature_2m || [];
     const rains = h.precipitation_probability || [];
     const data = [];
-    for(let i=0;i<Math.min(12,times.length);i++) data.push({
-      x: new Date(times[i]).getHours() + ':00',
-      t: unitTemp(temps[i] ?? 0),
-      r: rains[i] ?? 0
-    });
+    
+    // Find data starting from the current hour for real-time relevance
+    const nowTS = Date.now();
+    let startIdx = times.findIndex(t => new Date(t).getTime() >= nowTS - 3600000);
+    if(startIdx < 0) startIdx = 0;
+
+    for(let i=startIdx; i < Math.min(startIdx + 12, times.length); i++) {
+      const dt = new Date(times[i]);
+      let hrs = dt.getHours();
+      const ampm = hrs >= 12 ? 'PM' : 'AM';
+      hrs = hrs % 12 || 12; // Convert to 12-hour format
+      data.push({
+        x: `${hrs} ${ampm}`,
+        t: unitTemp(temps[i] ?? 0),
+        rawT: temps[i] ?? 0,
+        r: rains[i] ?? 0
+      });
+    }
+
     const pad = { top: 24, right: 24, bottom: 46, left: 52 };
     const W = cssW - pad.left - pad.right;
     const H = cssH - pad.top - pad.bottom;
@@ -686,18 +915,36 @@
       ctx.fillRect(bx, by, 16, pad.top + H - by);
     });
 
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 4;
+    // Area Gradient Fill
+    const fillGrd = ctx.createLinearGradient(0, pad.top, 0, pad.top + H);
+    fillGrd.addColorStop(0, data[0]?.rawT > 35 ? 'rgba(239,68,68,0.2)' : 'rgba(56,189,248,0.2)');
+    fillGrd.addColorStop(1, 'transparent');
+    ctx.fillStyle = fillGrd;
     ctx.beginPath();
-    data.forEach((pt,i) => {
-      const xx = x(i), yy = y(pt.t);
-      if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy);
-    });
-    ctx.stroke();
+    ctx.moveTo(x(0), pad.top + H);
+    data.forEach((pt, i) => ctx.lineTo(x(i), y(pt.t)));
+    ctx.lineTo(x(data.length - 1), pad.top + H);
+    ctx.fill();
+
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    // Draw individual segments to allow dynamic coloring
+    for(let i=0; i < data.length - 1; i++){
+      const pt1 = data[i], pt2 = data[i+1];
+      // Change to Red if temperature is above 35°C
+      ctx.strokeStyle = pt1.rawT > 35 ? '#ef4444' : '#38bdf8';
+      ctx.beginPath();
+      ctx.moveTo(x(i), y(pt1.t));
+      ctx.lineTo(x(i+1), y(pt2.t));
+      ctx.stroke();
+    }
 
     data.forEach((pt,i) => {
       const xx = x(i), yy = y(pt.t);
-      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(xx,yy,4,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = pt.rawT > 35 ? '#ef4444' : '#fff';
+      ctx.beginPath(); ctx.arc(xx,yy,4,0,Math.PI*2); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,.78)'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
       ctx.fillText(pt.x, xx, cssH - 16);
       ctx.fillText(`${pt.t}${tempUnit()}`, xx, yy - 10);
@@ -710,6 +957,16 @@
       const yy = pad.top + (H*i)/4;
       ctx.fillText(`${val}${tempUnit()}`, pad.left - 8, yy + 4);
     }
+  }
+
+  function startClock() {
+    if(window.__clockTimer) clearInterval(window.__clockTimer);
+    const update = () => {
+      const el = $('tickingClock');
+      if(el) el.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    };
+    update();
+    window.__clockTimer = setInterval(update, 1000);
   }
 
   async function voiceSearch(){
@@ -737,7 +994,7 @@
     if(store.data && store.place) renderUI(store.place.label);
   }
 
-  function closeSuggestions(){ $('suggestions').style.display = 'none'; }
+  function closeSuggestions(){ $('suggestions').classList.remove('show'); }
 
   $('searchBtn').onclick = () => searchPlace($('cityInput').value);
   $('refreshBtn').onclick = () => store.place ? loadWeather(store.place.latitude, store.place.longitude, store.place.label) : searchPlace($('cityInput').value);
@@ -751,16 +1008,50 @@
   $('cityInput').addEventListener('input', async e => {
     const q = e.target.value.trim();
     if(q.length < 2){ closeSuggestions(); return; }
+    
+    // Abort previous inflight request
+    if(window.__wxAbort) window.__wxAbort.abort();
+    window.__wxAbort = new AbortController();
+
     clearTimeout(window.__wxTimer);
     window.__wxTimer = setTimeout(async () => {
       try{
-        const list = await geocode(q);
+        const list = await geocode(q, window.__wxAbort.signal);
         showSuggestions(list.slice(0, 6));
-      }catch{
-        closeSuggestions();
+      }catch(e){
+        if(e.name !== 'AbortError') closeSuggestions();
       }
     }, 300);
   });
+
+  // Network Status Monitoring
+  window.addEventListener('offline', () => {
+    setError(t('offline'));
+    toast(t('offline'));
+  });
+  window.addEventListener('online', () => {
+    setError('');
+    if(store.place) loadWeather(store.place.latitude, store.place.longitude, store.place.label);
+  });
+
+  // Silence pesky browser extension errors (Chrome/Edge internal bugs)
+  window.addEventListener('unhandledrejection', (event) => {
+    const errorMsg = (event.reason?.message || event.reason || "").toString();
+    if (
+      errorMsg.includes('message channel closed') || 
+      errorMsg.includes('asynchronous response') ||
+      errorMsg.includes('extension')
+    ) {
+      event.stopImmediatePropagation();
+      event.preventDefault();
+    }
+  }, true);
+
+  window.addEventListener('error', (e) => {
+    console.error("Global Error:", e.message);
+    // Prevent critical crashes from showing nothing
+  });
+
   document.addEventListener('click', (e) => {
     if(!e.target.closest('.suggestWrap')) closeSuggestions();
   });
@@ -770,9 +1061,27 @@
   setLang(store.lang);
   $('unitSelect').value = store.unit;
   $('langSelect').value = store.lang;
-  $('cityInput').value = 'Mumbai';
+  
+  const lastPlace = JSON.parse(localStorage.getItem('wx_last_place') || 'null');
+  if(lastPlace) $('cityInput').value = lastPlace.label;
+  else $('cityInput').value = 'Mumbai';
+
   renderRecent();
-  if(!window.isSecureContext) $('secureBanner').style.display = 'block';
-  searchPlace('Mumbai');
-</script></body>
+
+  (async function init() {
+    if(!window.isSecureContext) {
+      $('secureBanner').style.display = 'block';
+      await searchPlace(lastPlace ? lastPlace.label : 'Mumbai');
+    } else {
+      try {
+        const perm = await navigator.permissions?.query({name:'geolocation'});
+        if(perm && perm.state === 'granted') await useMyLocation();
+        else await searchPlace(lastPlace ? lastPlace.label : 'Mumbai');
+      } catch (e) {
+        await searchPlace(lastPlace ? lastPlace.label : 'Mumbai');
+      }
+    }
+  })();
+</script>
+</body>
 </html>
